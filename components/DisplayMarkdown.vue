@@ -9,7 +9,7 @@
       <pre class="whitespace-pre-wrap overflow-auto">{{ markdownContent }}</pre>
     </div>
 
-    <div v-else class="rendered-markdown" v-html="renderedHtml"></div>
+    <div class="prose" v-else v-html="renderedHtml"></div>
   </div>
   
 </template>
@@ -33,7 +33,6 @@ watchEffect(async () => {
         .use(html)
         .process(props.markdownContent);
       renderedHtml.value = processedContent.toString();
-      console.log(renderedHtml.value)
     } catch (error) {
       console.error("Error processing Markdown:", error);
     }
@@ -41,4 +40,4 @@ watchEffect(async () => {
 });
 </script>
 
-<style scoped></style>
+<style></style>

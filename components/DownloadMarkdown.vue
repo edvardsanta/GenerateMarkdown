@@ -29,9 +29,10 @@ const fileName = ref("");
 function downloadMarkdown() {
   if (
     !props.markdownContent ||
-    !props.markdownContent.value ||
     !fileName.value.trim()
   ) {
+    console.log(fileName)
+    console.log(props.markdownContent)
     alert("Please enter a filename to download.");
     return;
   }

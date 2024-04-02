@@ -1,0 +1,8 @@
+node_modules
+.nuxt
+.dockerignore
+Dockerfile
+.npmrc
+.git
+.gitignore
+README.md

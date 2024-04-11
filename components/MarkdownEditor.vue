@@ -75,7 +75,7 @@ const sectionsInfo = computed(() => {
 });
 
 const sections = ref<MarkdownSection[]>([
-  { headerLevel: "", title: "", content: "", visible: true },
+  { headerLevel: "1", title: "", content: "", visible: true },
 ]);
 const includeTOC = ref(false);
 

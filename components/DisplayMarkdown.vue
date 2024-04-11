@@ -1,5 +1,8 @@
 <template>
   <div class="max-w-2xl mx-auto my-8 p-4 border border-gray-200 rounded-lg shadow">
+    
+    <CopyButton :markdown-content="markdownContent" />
+
     <label class="block mb-4 text-right">
       <input type="checkbox" v-model="showCode" class="mr-2 leading-tight" />
       <span>Show Markdown Code</span>

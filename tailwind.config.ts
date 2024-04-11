@@ -6,5 +6,8 @@ export default <Partial<Config>> {
     extend: {
     }
   },
-  plugins: []
+  plugins: [
+    require('@tailwindcss/typography')
+  ],
+  darkMode: 'class',
 }

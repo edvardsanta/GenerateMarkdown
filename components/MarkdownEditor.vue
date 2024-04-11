@@ -81,7 +81,7 @@ const includeTOC = ref(false);
 
 const addSection = () => {
   sections.value.push({
-    headerLevel: "",
+    headerLevel: "1",
     title: "",
     content: "",
     visible: true,

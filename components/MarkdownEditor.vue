@@ -1,7 +1,7 @@
 <template>
   <div>
     <label class="block mb-4 flex items-center">
-      <input type="checkbox" v-model="includeTOC" class="mr-2" />
+      <input v-model="includeTOC" type="checkbox" class="mr-2" >
       <span>Include Table of Contents</span>
     </label>
 
@@ -22,7 +22,7 @@
           v-model="section.title"
           placeholder="Section Title"
           class="section-title w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
-        />
+        >
         <select
           v-model="section.headerLevel"
           class="mb-2 w-full px-2 py-1 border border-gray-300 rounded-md"
@@ -41,8 +41,16 @@
         <button
           @click="removeSection(index)"
           class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:ring"
+          @click="removeSection(index)"
         >
           Remove Section
+        </button>
+
+        <button
+          class="ml-4 py-1 px-2 bg-green-500 text-white rounded focus:outline-none"
+          @click="addSection(index + 1)"
+        >
+          Add Section Below
         </button>
       </div>
     </div>
@@ -79,8 +87,8 @@ const sections = ref<MarkdownSection[]>([
 ]);
 const includeTOC = ref(false);
 
-const addSection = () => {
-  sections.value.push({
+const addSection = (index: number) => {
+  sections.value.splice(index, 0, {
     headerLevel: "1",
     title: "",
     content: "",

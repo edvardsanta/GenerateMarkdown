@@ -7,10 +7,10 @@
       type="text"
       placeholder="Enter filename (without extension)"
       class="mr-2 px-3 py-2 border border-gray-300 rounded-md flex-1"
-    />
+    >
     <button
-      @click="downloadMarkdown"
       class="ml-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+      @click="downloadMarkdown"
     >
       Download Markdown
     </button>
@@ -21,22 +21,16 @@
 import { ref } from "vue";
 
 const props = defineProps({
-  markdownContent: String,
+  markdownContent: String(""),
 });
 
 const fileName = ref("");
 
 function downloadMarkdown() {
-  if (
-    !props.markdownContent ||
-    !fileName.value.trim()
-  ) {
-    console.log(fileName)
-    console.log(props.markdownContent)
+  if (!props.markdownContent || !fileName.value.trim()) {
     alert("Please enter a filename to download.");
     return;
   }
-  console.log(props.markdownContent.value);
   const blob = new Blob([props.markdownContent], { type: "text/markdown" });
   const href = URL.createObjectURL(blob);
   const link = document.createElement("a");

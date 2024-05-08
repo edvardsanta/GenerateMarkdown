@@ -1,14 +1,14 @@
 <template>
   <div>
     <label class="block mb-4 flex items-center">
-      <input type="checkbox" v-model="includeTOC" class="mr-2" />
+      <input v-model="includeTOC" type="checkbox" class="mr-2" >
       <span>Include Table of Contents</span>
     </label>
 
     <div v-for="(section, index) in sections" :key="index" class="mb-6">
       <button
-        @click="toggleSection(index)"
         class="w-full text-left py-2 px-4 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
+        @click="toggleSection(index)"
       >
         Section {{ sectionsInfo[index].number }} -
         {{ sectionsInfo[index].title }}
@@ -22,7 +22,7 @@
           v-model="section.title"
           placeholder="Section Title"
           class="section-title w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
-        />
+        >
         <select
           v-model="section.headerLevel"
           class="mb-2 w-full px-2 py-1 border border-gray-300 rounded-md"
@@ -33,23 +33,32 @@
           <option value="4">H4</option>
           <option value="5">H5</option>
         </select>
+        <TextToolbar />
         <textarea
           v-model="section.content"
           placeholder="Section Content"
           class="section-content w-full h-32 mb-3 px-2 py-1 border border-gray-300 rounded-md"
-        ></textarea>
+          @select="handleSelect($event)"
+        />
         <button
-          @click="removeSection(index)"
           class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:ring"
+          @click="removeSection(index)"
         >
           Remove Section
+        </button>
+
+        <button
+          class="ml-4 py-1 px-2 bg-green-500 text-white rounded focus:outline-none"
+          @click="addSection(index + 1)"
+        >
+          Add Section Below
         </button>
       </div>
     </div>
 
     <button
-      @click="addSection"
       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring"
+      @click="addSection(sections.length)"
     >
       Add Section
     </button>
@@ -79,8 +88,8 @@ const sections = ref<MarkdownSection[]>([
 ]);
 const includeTOC = ref(false);
 
-const addSection = () => {
-  sections.value.push({
+const addSection = (index: number) => {
+  sections.value.splice(index, 0, {
     headerLevel: "1",
     title: "",
     content: "",
@@ -90,10 +99,14 @@ const addSection = () => {
 
 const toggleSection = (index: number) => {
   sections.value[index].visible = !sections.value[index].visible;
+  currentIndex.value = index; 
 };
 
 const removeSection = (index: number) => {
   sections.value.splice(index, 1);
+  if (currentIndex.value >= sections.value.length) { // Adjust currentIndex if necessary
+    currentIndex.value = sections.value.length - 1;
+  }
 };
 
 const generateTOC = (sections: MarkdownSection[]) => {
@@ -125,6 +138,21 @@ const emit = defineEmits(["update:markdownContent"]);
 watch(markdownOutput, (newValue) => {
   emit("update:markdownContent", newValue);
 });
+
+const selectedText = ref('');
+const currentIndex = ref(0); 
+provide('currentIndex', currentIndex);
+const updateText = (newText: string, index: number) => {
+  const currentSection = sections.value[index];
+  currentSection.content = currentSection.content.replace(selectedText.value, newText);
+};
+provide('selectedText', selectedText);
+provide('updateText', updateText);
+const handleSelect = (event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement;  
+  selectedText.value = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+};
+
 </script>
 
 <style scoped></style>

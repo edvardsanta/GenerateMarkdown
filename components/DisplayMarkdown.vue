@@ -4,7 +4,7 @@
     <CopyButton :markdown-content="markdownContent" />
 
     <label class="block mb-4 text-right">
-      <input type="checkbox" v-model="showCode" class="mr-2 leading-tight" />
+      <input v-model="showCode" type="checkbox" class="mr-2 leading-tight" >
       <span>Show Markdown Code</span>
     </label>
 
@@ -12,7 +12,7 @@
       <pre class="whitespace-pre-wrap overflow-auto">{{ markdownContent }}</pre>
     </div>
 
-    <div class="prose" v-else v-html="renderedHtml"></div>
+    <div v-else class="prose" v-html="renderedHtml"/>
   </div>
   
 </template>
@@ -36,6 +36,7 @@ watchEffect(async () => {
         .use(html)
         .process(props.markdownContent);
       renderedHtml.value = processedContent.toString();
+      console.log(renderedHtml.value);
     } catch (error) {
       console.error("Error processing Markdown:", error);
     }

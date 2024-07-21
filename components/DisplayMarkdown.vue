@@ -31,15 +31,11 @@ const renderedHtml = ref("");
 watchEffect(async () => {
   if (props.markdownContent) {
     try {
-      console.log(props.markdownContent);
       const processedContent = await remark()
         .use(html)
         .process(props.markdownContent);
       renderedHtml.value = processedContent.toString();
-      console.log(renderedHtml.value);
-    } catch (error) {
-      console.error("Error processing Markdown:", error);
-    }
+    } catch (error) { /* empty */ }
   }
 });
 </script>

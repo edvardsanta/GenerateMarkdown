@@ -1,12 +1,12 @@
 <template>
   <div class="text-toolbar p-2 bg-gray-200 bg-opacity-50 rounded-lg shadow">
-    <button @click="addLink" class="p-2 bg-gray-800 text-white rounded hover:bg-blue-700 transition-colors">
+    <button class="p-2 bg-gray-800 text-white rounded hover:bg-blue-700 transition-colors" @click="addLink">
       <font-awesome :icon="faLink" />
     </button>
-    <button @click="addCodeBlock" class="p-2 ml-2 bg-gray-800 text-white rounded hover:bg-green-700 transition-colors">
+    <button class="p-2 ml-2 bg-gray-800 text-white rounded hover:bg-green-700 transition-colors" @click="addCodeBlock">
       <font-awesome :icon="faCode" />
     </button>
-    <button @click="addBreakLine" class="p-2 ml-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors">
+    <button class="p-2 ml-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors" @click="addBreakLine">
       <font-awesome :icon="faMinus" />  
     </button>
   </div>
@@ -26,7 +26,6 @@ const addLink = () => {
 };
 
 const addCodeBlock = () => {
-  console.log(updateText)
   if (selectedText.value) {
     const markdownCode = `\`\`\`\n${selectedText.value}\n\`\`\``;
     updateText(markdownCode, currentIndex.value); 

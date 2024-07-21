@@ -1,17 +1,14 @@
 <template>
   <div>
-    <label class="block mb-4 flex items-center">
-      <input v-model="includeTOC" type="checkbox" class="mr-2" >
-      <span>Include Table of Contents</span>
-    </label>
+    <!-- TODO: Criar tabela de conteudo novamente, ta duplicando -->
+    <!-- <TOCCheckbox :include-toc="includeTOC" @update:includeTOC="updateIncludeTOC" /> -->
 
     <div v-for="(section, index) in sections" :key="index" class="mb-6">
       <button
         class="w-full text-left py-2 px-4 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
         @click="toggleSection(index)"
       >
-        Section {{ sectionsInfo[index].number }} -
-        {{ sectionsInfo[index].title }}
+        Section {{ sectionsInfo[index].number }} - {{ sectionsInfo[index].title }}
       </button>
 
       <div
@@ -66,7 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, provide, watch, defineProps, defineEmits } from "vue";
+
+const props = defineProps<{ markdownContent: string }>();
 
 interface MarkdownSection {
   headerLevel: string;
@@ -74,6 +73,14 @@ interface MarkdownSection {
   content: string;
   visible: boolean;
 }
+
+const sections = ref<MarkdownSection[]>([
+  { headerLevel: "1", title: "", content: "", visible: true },
+]);
+
+const includeTOC = ref(false);
+const isFileContent = ref(false);
+
 const sectionsInfo = computed(() => {
   return sections.value.map((section, index) => {
     return {
@@ -82,11 +89,6 @@ const sectionsInfo = computed(() => {
     };
   });
 });
-
-const sections = ref<MarkdownSection[]>([
-  { headerLevel: "1", title: "", content: "", visible: true },
-]);
-const includeTOC = ref(false);
 
 const addSection = (index: number) => {
   sections.value.splice(index, 0, {
@@ -99,14 +101,10 @@ const addSection = (index: number) => {
 
 const toggleSection = (index: number) => {
   sections.value[index].visible = !sections.value[index].visible;
-  currentIndex.value = index; 
 };
 
 const removeSection = (index: number) => {
   sections.value.splice(index, 1);
-  if (currentIndex.value >= sections.value.length) { // Adjust currentIndex if necessary
-    currentIndex.value = sections.value.length - 1;
-  }
 };
 
 const generateTOC = (sections: MarkdownSection[]) => {
@@ -133,26 +131,82 @@ const markdownOutput = computed(() => {
   }
   return content;
 });
-const emit = defineEmits(["update:markdownContent"]);
+
+const emit = defineEmits(["update:markdown-content"]);
 
 watch(markdownOutput, (newValue) => {
-  emit("update:markdownContent", newValue);
+  if (!isFileContent.value) {
+    emit("update:markdown-content", newValue);
+  }
 });
 
-const selectedText = ref('');
-const currentIndex = ref(0); 
-provide('currentIndex', currentIndex);
+const selectedText = ref("");
+const currentIndex = ref(0);
+provide("currentIndex", currentIndex);
+
 const updateText = (newText: string, index: number) => {
   const currentSection = sections.value[index];
-  currentSection.content = currentSection.content.replace(selectedText.value, newText);
-};
-provide('selectedText', selectedText);
-provide('updateText', updateText);
-const handleSelect = (event: Event) => {
-  const textarea = event.target as HTMLTextAreaElement;  
-  selectedText.value = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+  currentSection.content = currentSection.content.replace(
+    selectedText.value,
+    newText
+  );
 };
 
+provide("selectedText", selectedText);
+provide("updateText", updateText);
+
+const handleSelect = (event: Event) => {
+  const textarea = event.target as HTMLTextAreaElement;
+  selectedText.value = textarea.value.substring(
+    textarea.selectionStart,
+    textarea.selectionEnd
+  );
+};
+
+watch(
+  () => props.markdownContent,
+  (newContent) => {
+    if (!newContent || includeTOC.value) return;
+
+    isFileContent.value = true;
+    const newSections: MarkdownSection[] = [];
+    let currentSection: MarkdownSection | null = null;
+
+    newContent.split("\n").forEach((line) => {
+      const headerMatch = line.match(/^(#{1,6})\s+(.*)/);
+      if (headerMatch) {
+        if (currentSection) {
+          newSections.push(currentSection);
+        }
+        currentSection = {
+          headerLevel: String(headerMatch[1].length),
+          title: headerMatch[2],
+          content: "",
+          visible: true,
+        };
+      } else if (currentSection) {
+        currentSection.content += `${line}\n`;
+      }
+    });
+
+    if (currentSection) {
+      newSections.push(currentSection);
+    }
+
+    sections.value = newSections.map((section) => ({
+      ...section,
+      content: section.content.trim(),
+    }));
+
+    isFileContent.value = false;
+  },
+  { immediate: true }
+);
+// const updateIncludeTOC = (newValue: boolean) => {
+//   if (includeTOC.value !== newValue) {
+//     includeTOC.value = newValue;
+//   }
+// };
 </script>
 
 <style scoped></style>

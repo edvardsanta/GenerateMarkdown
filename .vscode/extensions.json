@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "nuxtr.nuxt-vscode-extentions",
+        "bradlc.vscode-tailwindcss",
+        "wix.vscode-import-cost"
+    ]
+}

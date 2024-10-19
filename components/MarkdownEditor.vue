@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- TODO: Criar tabela de conteudo novamente, ta duplicando -->
+    <!-- TODO: Recriar a tabela de conteúdo (TOC) sem duplicações -->
     <!-- <TOCCheckbox :include-toc="includeTOC" @update:includeTOC="updateIncludeTOC" /> -->
 
     <div v-for="(section, index) in sections" :key="index" class="mb-6">
@@ -8,17 +8,17 @@
         class="w-full text-left py-2 px-4 bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
         @click="toggleSection(index)"
       >
-        Section {{ sectionsInfo[index].number }} - {{ sectionsInfo[index].title }}
+        Seção {{ index + 1 }} - {{ section.title || "Sem Título" }}
       </button>
 
       <div
-        v-show="section.visible"
+        v-if="activeSection === index"
         class="p-4 border border-gray-300 rounded-md mt-2"
       >
         <input
           v-model="section.title"
-          placeholder="Section Title"
-          class="section-title w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
+          placeholder="Título da Seção"
+          class="w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
         >
         <select
           v-model="section.headerLevel"
@@ -33,23 +33,25 @@
         <TextToolbar />
         <textarea
           v-model="section.content"
-          placeholder="Section Content"
-          class="section-content w-full h-32 mb-3 px-2 py-1 border border-gray-300 rounded-md"
+          placeholder="Conteúdo da Seção"
+          class="w-full h-32 mb-3 px-2 py-1 border border-gray-300 rounded-md"
           @select="handleSelect($event)"
-        />
-        <button
-          class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:ring"
-          @click="removeSection(index)"
-        >
-          Remove Section
-        </button>
+       />
+        <div class="flex justify-between">
+          <button
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:ring"
+            @click="removeSection(index)"
+          >
+            Remover Seção
+          </button>
 
-        <button
-          class="ml-4 py-1 px-2 bg-green-500 text-white rounded focus:outline-none"
-          @click="addSection(index + 1)"
-        >
-          Add Section Below
-        </button>
+          <button
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded focus:outline-none focus:ring"
+            @click="addSection(index + 1)"
+          >
+            Adicionar Seção Abaixo
+          </button>
+        </div>
       </div>
     </div>
 
@@ -57,56 +59,68 @@
       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring"
       @click="addSection(sections.length)"
     >
-      Add Section
+      Adicionar Seção
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, provide, watch, defineProps, defineEmits } from "vue";
+import { ref, computed, watch, defineProps, defineEmits } from "vue";
 
+// Propriedades recebidas pelo componente
 const props = defineProps<{ markdownContent: string }>();
 
+// Interface para uma seção de markdown
 interface MarkdownSection {
   headerLevel: string;
   title: string;
   content: string;
-  visible: boolean;
 }
 
+// Estado das seções
 const sections = ref<MarkdownSection[]>([
-  { headerLevel: "1", title: "", content: "", visible: true },
+  { headerLevel: "1", title: "", content: "" },
 ]);
 
+// Controle de inclusão da TOC
 const includeTOC = ref(false);
 const isFileContent = ref(false);
 
-const sectionsInfo = computed(() => {
-  return sections.value.map((section, index) => {
-    return {
-      number: index + 1,
-      title: section.title || "Untitled",
-    };
-  });
-});
+// Índice da seção atualmente ativa (aberta)
+const activeSection = ref<number | null>(null);
 
+// Função para adicionar uma nova seção em um índice específico
 const addSection = (index: number) => {
   sections.value.splice(index, 0, {
     headerLevel: "1",
     title: "",
     content: "",
-    visible: true,
   });
+  activeSection.value = index; // Abrir a nova seção
 };
 
+// Função para alternar a visibilidade de uma seção
 const toggleSection = (index: number) => {
-  sections.value[index].visible = !sections.value[index].visible;
+  if (activeSection.value === index) {
+    activeSection.value = null; // Fechar a seção se já estiver aberta
+  } else {
+    activeSection.value = index; // Abrir a seção e fechar as outras
+  }
 };
 
+// Função para remover uma seção
 const removeSection = (index: number) => {
   sections.value.splice(index, 1);
+  if (activeSection.value) {
+    if (activeSection.value === index) {
+      activeSection.value = null; // Fechar a seção se ela for removida
+    } else if (activeSection.value > index) {
+      activeSection.value -= 1; // Ajustar o índice se uma seção anterior for removida
+    }
+  }
 };
 
+// Função para gerar a Tabela de Conteúdos (TOC)
 const generateTOC = (sections: MarkdownSection[]) => {
   return sections
     .map((section) => {
@@ -117,6 +131,7 @@ const generateTOC = (sections: MarkdownSection[]) => {
     .join("\n");
 };
 
+// Computed para o output do markdown
 const markdownOutput = computed(() => {
   let content = sections.value
     .map((section) => {
@@ -127,11 +142,12 @@ const markdownOutput = computed(() => {
 
   if (includeTOC.value) {
     const toc = generateTOC(sections.value);
-    content = `## Table of Contents\n${toc}\n\n` + content;
+    content = `## Tabela de Conteúdos\n${toc}\n\n` + content;
   }
   return content;
 });
 
+// Emissão de eventos para atualizar o conteúdo do markdown
 const emit = defineEmits(["update:markdown-content"]);
 
 watch(markdownOutput, (newValue) => {
@@ -140,21 +156,10 @@ watch(markdownOutput, (newValue) => {
   }
 });
 
+// Seleção de texto dentro de uma seção
 const selectedText = ref("");
-const currentIndex = ref(0);
-provide("currentIndex", currentIndex);
 
-const updateText = (newText: string, index: number) => {
-  const currentSection = sections.value[index];
-  currentSection.content = currentSection.content.replace(
-    selectedText.value,
-    newText
-  );
-};
-
-provide("selectedText", selectedText);
-provide("updateText", updateText);
-
+// Evento de seleção de texto no textarea
 const handleSelect = (event: Event) => {
   const textarea = event.target as HTMLTextAreaElement;
   selectedText.value = textarea.value.substring(
@@ -163,6 +168,7 @@ const handleSelect = (event: Event) => {
   );
 };
 
+// Watcher para sincronizar o conteúdo markdown recebido via props
 watch(
   () => props.markdownContent,
   (newContent) => {
@@ -182,7 +188,6 @@ watch(
           headerLevel: String(headerMatch[1].length),
           title: headerMatch[2],
           content: "",
-          visible: true,
         };
       } else if (currentSection) {
         currentSection.content += `${line}\n`;
@@ -202,11 +207,6 @@ watch(
   },
   { immediate: true }
 );
-// const updateIncludeTOC = (newValue: boolean) => {
-//   if (includeTOC.value !== newValue) {
-//     includeTOC.value = newValue;
-//   }
-// };
 </script>
 
 <style scoped></style>

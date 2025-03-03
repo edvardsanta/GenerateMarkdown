@@ -37,7 +37,9 @@
             "request": "launch",
             "name": "Launch Nuxt.js",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}"
+            "runtimeArgs": ["--incognito"],
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": "bun: dev"
           }
     ]
 }

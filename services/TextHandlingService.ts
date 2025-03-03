@@ -46,14 +46,27 @@ export class TextHandlingService {
     sections: MarkdownSection[];
     hasTOC: boolean;
   } {
-    const hasTOC = content.includes("## Tabela de Conteúdos");
+    const hasTOC =
+      content.includes("## Tabela de Conteúdos") ||
+      content.includes("## Table of Contents");
     let processedContent = content;
 
+    // Remove TOC section if present
     if (hasTOC) {
-      const tocSectionEnd = content.indexOf(
-        "\n\n",
-        content.indexOf("## Tabela de Conteúdos")
-      );
+      let tocSectionEnd = -1;
+
+      if (content.includes("## Tabela de Conteúdos")) {
+        tocSectionEnd = content.indexOf(
+          "\n\n",
+          content.indexOf("## Tabela de Conteúdos")
+        );
+      } else if (content.includes("## Table of Contents")) {
+        tocSectionEnd = content.indexOf(
+          "\n\n",
+          content.indexOf("## Table of Contents")
+        );
+      }
+
       if (tocSectionEnd !== -1) {
         processedContent = content.substring(tocSectionEnd + 2);
       }
@@ -62,12 +75,22 @@ export class TextHandlingService {
     const sections: MarkdownSection[] = [];
     let currentSection: MarkdownSection | null = null;
 
-    processedContent.split("\n").forEach((line) => {
+    // Split by line and process
+    const lines = processedContent.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       const headerMatch = line.match(/^(#{1,6})\s+(.*)/);
+
       if (headerMatch) {
+        // If we have a section in progress, save it
         if (currentSection) {
+          // Trim trailing whitespace from content
+          currentSection.content = currentSection.content.replace(/\s+$/, "");
           sections.push(currentSection);
         }
+
+        // Start a new section
         currentSection = {
           id: this.generateUniqueId(),
           headerLevel: String(headerMatch[1].length),
@@ -76,17 +99,40 @@ export class TextHandlingService {
           hasUnsavedChanges: false,
         };
       } else if (currentSection) {
+        // Add to existing section
         currentSection.content += (currentSection.content ? "\n" : "") + line;
+      } else {
+        // No section yet, create default one for content before first header
+        currentSection = {
+          id: this.generateUniqueId(),
+          headerLevel: "1",
+          title: "Introduction",
+          content: line,
+          hasUnsavedChanges: false,
+        };
       }
-    });
+    }
 
+    // Don't forget the last section
     if (currentSection) {
+      // Trim trailing whitespace from content
+      currentSection.content = currentSection.content.replace(/\s+$/, "");
       sections.push(currentSection);
+    }
+
+    // If no sections were found, create a default one
+    if (sections.length === 0) {
+      sections.push({
+        id: this.generateUniqueId(),
+        headerLevel: "1",
+        title: "Untitled Document",
+        content: processedContent.trim(),
+        hasUnsavedChanges: false,
+      });
     }
 
     return { sections, hasTOC };
   }
-
   generateMarkdownContent(
     sections: MarkdownSection[],
     includeTOC = false
@@ -121,7 +167,7 @@ export class TextHandlingService {
       })
       .join("\n");
   }
-  
+
   private generateUniqueId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }

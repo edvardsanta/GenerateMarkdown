@@ -4,13 +4,40 @@ export default defineNuxtConfig({
   modules: [
     "@nuxtjs/tailwindcss",
     "@vesp/nuxt-fontawesome",
-    '@nuxtjs/eslint-module',
-    "@nuxt/eslint"
+    "@nuxtjs/eslint-module",
+    "@nuxt/eslint",
+    "@nuxt/test-utils/module",
   ],
   fontawesome: {
     icons: {
-      solid: ['dollar-sign', 'cog', 'circle', 'check', 'calendar'],
-      regular: ['user']
-    }
+      solid: [
+        "dollar-sign",
+        "cog",
+        "circle",
+        "check",
+        "calendar",
+        "table",
+        "code",
+        "list",
+        "copy",
+        "times",
+        "check-square",
+      ],
+      regular: ["user"],
+    },
+  },
+  vite: {
+    build: {
+      target: "esnext",
+    },
+    optimizeDeps: {
+      exclude: ["@rustwasm/smart-editor"],
+    },
+  },
+  webpack: {
+    experiments: {
+      asyncWebAssembly: true,
+      layers: true,
+    },
   },
 });

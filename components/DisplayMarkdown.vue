@@ -1,7 +1,8 @@
 <template>
-  <div class="max-w-2xl mx-auto my-8 p-4 border border-gray-200 rounded-lg shadow">
-    
-    <CopyButton :markdown-content="markdownContent" />
+  <div
+    class="max-w-2xl mx-auto my-8 p-4 border border-gray-200 rounded-lg shadow"
+  >
+    <DisplayCopyButton :markdown-content="markdownContent" />
 
     <label class="block mb-4 text-right">
       <input v-model="showCode" type="checkbox" class="mr-2 leading-tight" >
@@ -12,13 +13,11 @@
       <pre class="whitespace-pre-wrap overflow-auto">{{ markdownContent }}</pre>
     </div>
 
-    <div v-else class="prose" v-html="renderedHtml"/>
+    <div v-else class="prose" v-html="renderedHtml" />
   </div>
-  
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
 import { remark } from "remark";
 import html from "remark-html";
 
@@ -35,7 +34,9 @@ watchEffect(async () => {
         .use(html)
         .process(props.markdownContent);
       renderedHtml.value = processedContent.toString();
-    } catch (error) { /* empty */ }
+    } catch (error) {
+      /* empty */
+    }
   }
 });
 </script>
